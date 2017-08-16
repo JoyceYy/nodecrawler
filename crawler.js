@@ -7,11 +7,11 @@ var defaultReg = /<img[\w\W]+?data-imgurl\s*=\s*(?:(['"])(([\/\/]||[http(?:s)?:\
 var srcs = [];
 var crawler = {} ;
 
-crawler.crawle = function(url,reg = defaultReg,resultIndex=2) {
+crawler.crawle = function(url,reg = defaultReg) {
 					console.log('reg:'+reg);
 					return new Promise(function(resolve,reject) {
 						  reg.lastIndex = 0;
-						  co(crawlerUrl(url,reg,resultIndex))
+						  co(crawlerUrl(url,reg))
 						  		.then(function(data) {
 									resolve(data);
 								}
@@ -19,7 +19,7 @@ crawler.crawle = function(url,reg = defaultReg,resultIndex=2) {
 					})
 }
 
-function* crawlerUrl(url,reg,resultIndex) {
+function* crawlerUrl(url,reg) {
     const instance = yield phantom.create();
     const page = yield instance.createPage();
     yield page.on("onResourceRequested", function(requestData) {
@@ -34,8 +34,13 @@ function* crawlerUrl(url,reg,resultIndex) {
  			let match;
 		    while((match = reg.exec(content)) != null){
 		      	(function(path) {
-		      		srcs.push(path);
-		      	})(match[resultIndex]);
+		      		var groups = path.slice(1);
+		      		var groupsObj = {};
+		      		groups.forEach(function(value,index) {
+		      			groupsObj[index] = value;
+		      		})
+		      		srcs.push(groupsObj);
+		      	})(match);
 		    }
 		  }
 		  return srcs;
